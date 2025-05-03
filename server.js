@@ -25,15 +25,26 @@ app.get("/", (req, res) => {
 // Criar investimento
 app.post("/investir", async (req, res) => {
   const { telefone, valor } = req.body;
-  if (!telefone || !valor) {
-    return res.status(400).json({ error: "Telefone e valor são obrigatórios." });
+  if (!telefone || !valor || valor < 100) {
+    return res.status(400).json({ error: "Telefone e valor (mínimo 100) são obrigatórios." });
   }
 
   const referencia = "REF" + Math.floor(Math.random() * 1000000);
   const novoInvestimento = new Investimento({ telefone, valor, referencia });
   await novoInvestimento.save();
 
-  const mensagem = `Obrigado por investir ${valor} MZN. Use o código ${referencia} para confirmar o depósito.`;
+  // Dados dos métodos de pagamento
+  const mpesa = process.env.MPESA_NUMBER;
+  const emola = process.env.EMOLA_NUMBER;
+  const paypal = process.env.PAYPAL_EMAIL;
+
+  const mensagem = `Investimento de ${valor} MZN criado com sucesso!
+Deposite para:
+M-Pesa: ${mpesa}
+e-Mola: ${emola}
+PayPal: ${paypal}
+Use o código ${referencia} ao confirmar.`;
+
   await enviarSMS(telefone, mensagem);
 
   res.json({ sucesso: true, referencia });

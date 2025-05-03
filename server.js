@@ -1,20 +1,45 @@
 const express = require("express");
+const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
-const dotenv = require("dotenv");
-const cors = require("cors");
+require("dotenv").config();
 
-dotenv.config();
+const enviarSMS = require("./enviarSMS");
+const Investimento = require("./models/Investimento");
+
 const app = express();
+app.use(bodyParser.json());
 
-app.use(cors());
-app.use(express.json());
+// Conexão ao MongoDB
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+.then(() => console.log("MongoDB conectado."))
+.catch(err => console.error("Erro ao conectar ao MongoDB:", err));
 
-mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log("MongoDB conectado"))
-  .catch(err => console.error("Erro ao conectar:", err));
+// Endpoint de teste
+app.get("/", (req, res) => {
+  res.send("Servidor ativo.");
+});
 
-app.use("/api/investir", require("./routes/investimento"));
-app.use("/api/txuna", require("./routes/txuna"));
+// Criar investimento
+app.post("/investir", async (req, res) => {
+  const { telefone, valor } = req.body;
+  if (!telefone || !valor) {
+    return res.status(400).json({ error: "Telefone e valor são obrigatórios." });
+  }
+
+  const referencia = "REF" + Math.floor(Math.random() * 1000000);
+  const novoInvestimento = new Investimento({ telefone, valor, referencia });
+  await novoInvestimento.save();
+
+  const mensagem = `Obrigado por investir ${valor} MZN. Use o código ${referencia} para confirmar o depósito.`;
+  await enviarSMS(telefone, mensagem);
+
+  res.json({ sucesso: true, referencia });
+});
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Servidor ativo na porta ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Servidor rodando na porta ${PORT}`);
+});

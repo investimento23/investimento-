@@ -1,0 +1,19 @@
+{
+  "name": "investimento-backend",
+  "version": "1.0.0",
+  "engines": {
+    "node": "10.x"
+  },
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "mongoose": "^5.13.15",
+    "dotenv": "^8.2.0",
+    "cors": "^2.8.5",
+    "body-parser": "^1.19.0",
+    "africastalking": "^1.5.1"
+  }
+}

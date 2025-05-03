@@ -3,7 +3,8 @@ const mongoose = require("mongoose");
 const InvestimentoSchema = new mongoose.Schema({
   telefone: String,
   valor: Number,
-  data: {
+  referencia: String,
+  criadoEm: {
     type: Date,
     default: Date.now
   }

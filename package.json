@@ -14,6 +14,6 @@
     "dotenv": "^8.2.0",
     "cors": "^2.8.5",
     "body-parser": "^1.19.0",
-    "africastalking": "^1.5.1"
+    "africastalking": "1.5.0"
   }
 }

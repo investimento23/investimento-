@@ -1,0 +1,69 @@
+const express = require("express");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const User = require("../models/user"); // Certifique-se de que o caminho está correto
+
+const router = express.Router();
+
+// Rota de Registro
+router.post("/register", async (req, res) => {
+  const { telefone, senha } = req.body;
+  if (!telefone || !senha) {
+    return res.status(400).json({ erro: "Telefone e senha são obrigatórios." });
+  }
+
+  try {
+    // Verificar se o usuário já existe
+    const userExistente = await User.findOne({ telefone });
+    if (userExistente) {
+      return res.status(400).json({ erro: "Usuário já existe." });
+    }
+
+    // Criptografar a senha
+    const senhaCriptografada = await bcrypt.hash(senha, 10);
+
+    // Criar novo usuário
+    const novoUsuario = new User({
+      telefone,
+      senha: senhaCriptografada,
+    });
+
+    await novoUsuario.save();
+    res.status(201).json({ sucesso: true, mensagem: "Usuário registrado com sucesso." });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ erro: "Erro ao registrar usuário." });
+  }
+});
+
+// Rota de Login
+router.post("/login", async (req, res) => {
+  const { telefone, senha } = req.body;
+  if (!telefone || !senha) {
+    return res.status(400).json({ erro: "Telefone e senha são obrigatórios." });
+  }
+
+  try {
+    // Verificar se o usuário existe
+    const usuario = await User.findOne({ telefone });
+    if (!usuario) {
+      return res.status(400).json({ erro: "Usuário não encontrado." });
+    }
+
+    // Verificar a senha
+    const senhaCorreta = await bcrypt.compare(senha, usuario.senha);
+    if (!senhaCorreta) {
+      return res.status(400).json({ erro: "Senha incorreta." });
+    }
+
+    // Gerar o token JWT
+    const token = jwt.sign({ userId: usuario._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+    res.json({ sucesso: true, token });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ erro: "Erro ao fazer login." });
+  }
+});
+
+module.exports = router;

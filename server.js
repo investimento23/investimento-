@@ -4,11 +4,12 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 require("dotenv").config();
 
-const authRoutes = require("./routes/auth"); // Importando as rotas de autenticação
-const investimentoRoutes = require("./routes/investimento"); // Rota de investimentos
+const authRoutes = require("./routes/auth");
+const investimentoRoutes = require("./routes/investimento");
+const txunaRoutes = require("./routes/txuna");
+
 const app = express();
 
-// Middleware
 app.use(cors());
 app.use(bodyParser.json());
 
@@ -20,17 +21,17 @@ mongoose.connect(process.env.MONGO_URI, {
   .then(() => console.log("MongoDB conectado."))
   .catch(err => console.error("Erro ao conectar ao MongoDB:", err));
 
-// Usar as rotas de autenticação
-app.use("/api/auth", authRoutes); // Rota de autenticação
+// Rotas
+app.use("/api/auth", authRoutes);         // Registro e login
+app.use("/api/investir", investimentoRoutes); // Investimentos
+app.use("/api/txuna", txunaRoutes);       // Txuna
 
-// Usar a rota de investimento
-app.use("/api/investir", investimentoRoutes); // Rota de investimento
-
-// Endpoint de teste
+// Rota de teste
 app.get("/", (req, res) => {
   res.send("Servidor ativo.");
 });
 
+// Porta
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
